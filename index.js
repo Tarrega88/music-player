@@ -43,8 +43,8 @@ client.on('messageCreate', async (message) => {
         return message.reply('Please provide a valid file name.');
     }
 
-    // Define path to your music files
-    const filePath = path.join('/path/to/your/music/folder', fileName);
+    // Define path to your music files (replace with actual path)
+    const filePath = path.join('/root/music-player/music', fileName); // Make sure the path is correct
 
     const voiceChannel = message.member.voice.channel;
     if (!voiceChannel) {
@@ -64,26 +64,31 @@ client.on('messageCreate', async (message) => {
         return message.reply('Failed to join the voice channel.');
     }
 
-    const audioStream = streamFromFile(filePath);
-    const resource = createAudioResource(audioStream, {
-        inputType: StreamType.Opus
-    });
+    try {
+        const audioStream = streamFromFile(filePath);
+        const resource = createAudioResource(audioStream, {
+            inputType: StreamType.Arbitrary // Use Arbitrary if the file is not Opus
+        });
 
-    const player = createAudioPlayer();
-    player.play(resource);
-    connection.subscribe(player);
+        const player = createAudioPlayer();
+        player.play(resource);
+        connection.subscribe(player);
 
-    player.on(AudioPlayerStatus.Idle, () => {
-        connection.destroy();
-    });
+        player.on(AudioPlayerStatus.Idle, () => {
+            connection.destroy();
+        });
 
-    player.on('error', (error) => {
-        console.error('AudioPlayer error:', error);
-        message.reply('There was an error playing that audio.');
-        connection.destroy();
-    });
+        player.on('error', (error) => {
+            console.error('AudioPlayer error:', error);
+            message.reply('There was an error playing that audio.');
+            connection.destroy();
+        });
 
-    message.reply(`Now playing: ${fileName}`);
+        message.reply(`Now playing: ${fileName}`);
+    } catch (error) {
+        console.error('File reading error:', error);
+        message.reply('There was an error reading the audio file.');
+    }
 });
 
 client.login(process.env.DISCORD_TOKEN);
