@@ -1,0 +1,18 @@
+# Node.js
+node_modules/
+
+# Environment variables
+.env
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# NPM package lock file (optional, based on your needs)
+package-lock.json
+
+# Temporary files
+*.tmp
