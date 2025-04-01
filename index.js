@@ -49,11 +49,6 @@ function populateSongList() {
     });
 }
 
-client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}`);
-    populateSongList();  // Load the songs on startup
-});
-
 // Function to download the song and save it locally
 function downloadFile(url, fileName) {
     const saveDirectory = musicFolderPath;
@@ -65,8 +60,9 @@ function downloadFile(url, fileName) {
 
         fileStream.on('finish', () => {
             console.log(`Downloaded: ${fileName}`);
-            // After the download, add it to the song list
+            // After the download, add it to the song list and refresh
             songList.push({ fileName, name: fileName });
+            populateSongList();  // Re-populate the song list
         });
 
         fileStream.on('error', (error) => {
@@ -75,14 +71,6 @@ function downloadFile(url, fileName) {
     }).on('error', (error) => {
         console.error('Error with the HTTP request:', error);
     });
-}
-
-// Function to stream local files
-function streamFromFile(filePath) {
-    if (!fs.existsSync(filePath)) {
-        throw new Error('File not found!');
-    }
-    return fs.createReadStream(filePath);
 }
 
 // Handle the !upload command to upload and save files
@@ -107,7 +95,7 @@ client.on('messageCreate', async (message) => {
             return message.reply('The attached file is not an audio file. Please upload a valid audio file.');
         }
 
-        // Download the file
+        // Download the file and add to song list
         downloadFile(attachment.url, fileName);
         message.reply(`Successfully uploaded and saved your file: ${fileName}`);
     }
@@ -115,7 +103,7 @@ client.on('messageCreate', async (message) => {
     // Handle the !name command to store the current song with a name
     if (message.content.startsWith('!name') && !message.author.bot) {
         const args = message.content.split('!name');
-        const songName = args.slice(1).join(' ').trim();
+        const songName = args[1].trim();
 
         if (!songName || !currentSong) {
             return message.reply('No song is currently playing to name.');
