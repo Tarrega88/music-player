@@ -104,8 +104,9 @@ client.on('messageCreate', async (message) => {
         const attachment = message.attachments.first();
 
         // Check if the file is an audio file
-        if (!attachment.contentType || !attachment.contentType.startsWith('audio')) {
-            return message.reply('The attached file is not an audio file. Please upload a valid audio file.');
+        const validAudioTypes = ['audio/mpeg', 'audio/flac', 'audio/wav', 'audio/ogg'];  // Add other audio types as needed
+        if (!attachment.contentType || !validAudioTypes.includes(attachment.contentType)) {
+            return message.reply('The attached file is not a valid audio file. Please upload a valid audio file (e.g., mp3, flac, wav, ogg).');
         }
 
         // Download the file
