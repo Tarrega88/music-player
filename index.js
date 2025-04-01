@@ -40,7 +40,8 @@ function populateSongList() {
         }
 
         // Only keep audio files (you can adjust this to other file types as needed)
-        songList = files.filter(file => file.endsWith('.mp3') || file.endsWith('.flac')).map(file => ({
+        // songList = files.filter(file => file.endsWith('.mp3') || file.endsWith('.flac')).map(file => ({
+        songList = files.map(file => ({
             fileName: file,
             name: file // Initially, the user-provided name is the file name
         }));
