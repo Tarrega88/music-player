@@ -64,7 +64,7 @@ function streamFromFile(filePath) {
 // Handle the !upload command to upload and save files
 client.on('messageCreate', async (message) => {
     if (message.content.startsWith('!upload') && !message.author.bot) {
-        const args = message.content.split(' ');
+        const args = message.content.split('!upload');
         const fileName = args[1];
 
         if (!fileName) {
