@@ -28,13 +28,35 @@ let currentSong = null; // { fileName: 'song.mp3', name: 'Great Song' }
 // Store uploaded files and their names in memory
 let songList = []; // [{ fileName: 'song.mp3', name: 'Great Song' }]
 
+// Path to your music folder
+const musicFolderPath = '/root/music-player/music';
+
+// Populate the song list on startup
+function populateSongList() {
+    fs.readdir(musicFolderPath, (err, files) => {
+        if (err) {
+            console.error('Error reading music folder:', err);
+            return;
+        }
+
+        // Only keep audio files (you can adjust this to other file types as needed)
+        songList = files.filter(file => file.endsWith('.mp3') || file.endsWith('.flac')).map(file => ({
+            fileName: file,
+            name: file // Initially, the user-provided name is the file name
+        }));
+
+        console.log(`Loaded songs: ${songList.map(song => song.name).join(', ')}`);
+    });
+}
+
 client.once('ready', () => {
     console.log(`Logged in as ${client.user.tag}`);
+    populateSongList();  // Load the songs on startup
 });
 
 // Function to download the song and save it locally
 function downloadFile(url, fileName) {
-    const saveDirectory = '/root/music-player/music/';
+    const saveDirectory = musicFolderPath;
     const filePath = path.join(saveDirectory, fileName);
 
     https.get(url, (response) => {
@@ -43,6 +65,8 @@ function downloadFile(url, fileName) {
 
         fileStream.on('finish', () => {
             console.log(`Downloaded: ${fileName}`);
+            // After the download, add it to the song list
+            songList.push({ fileName, name: fileName });
         });
 
         fileStream.on('error', (error) => {
@@ -85,26 +109,33 @@ client.on('messageCreate', async (message) => {
 
         // Download the file
         downloadFile(attachment.url, fileName);
-        songList.push({ fileName, name: fileName }); // Add the song to the list
         message.reply(`Successfully uploaded and saved your file: ${fileName}`);
     }
 
     // Handle the !name command to store the current song with a name
     if (message.content.startsWith('!name') && !message.author.bot) {
-        const args = message.content.split(' ');
+        const args = message.content.split('!name');
         const songName = args.slice(1).join(' ');
 
         if (!songName || !currentSong) {
             return message.reply('No song is currently playing to name.');
         }
 
+        // Check if the song name already exists in the cache
+        const nameExists = songList.some(song => song.name.toLowerCase() === songName.toLowerCase());
+
+        if (nameExists) {
+            return message.reply('A song with that name already exists.');
+        }
+
         currentSong.name = songName;  // Update the name of the current song
+        songList.push({ fileName: currentSong.fileName, name: songName });  // Add to song list
         message.reply(`Song has been named: ${songName}`);
     }
 
     // Handle the !play command to play the uploaded song by file name or song name
     if (message.content.startsWith('!play') && !message.author.bot) {
-        const args = message.content.split(' ');
+        const args = message.content.split('!play');
         let fileName = args[1];
 
         if (!fileName) {
@@ -119,7 +150,7 @@ client.on('messageCreate', async (message) => {
         }
 
         // Get the file path of the song
-        const filePath = path.join('/root/music-player/music', song.fileName);
+        const filePath = path.join(musicFolderPath, song.fileName);
 
         const voiceChannel = message.member.voice.channel;
         if (!voiceChannel) {
