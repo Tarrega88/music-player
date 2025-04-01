@@ -89,7 +89,7 @@ function streamFromFile(filePath) {
 client.on('messageCreate', async (message) => {
     if (message.content.startsWith('!upload') && !message.author.bot) {
         const args = message.content.split('!upload');
-        const fileName = args[1];
+        const fileName = args[1].trim();
 
         if (!fileName) {
             return message.reply('Please provide a valid file name (e.g., !upload mysong.mp3).');
@@ -115,7 +115,7 @@ client.on('messageCreate', async (message) => {
     // Handle the !name command to store the current song with a name
     if (message.content.startsWith('!name') && !message.author.bot) {
         const args = message.content.split('!name');
-        const songName = args.slice(1).join(' ');
+        const songName = args.slice(1).join(' ').trim();
 
         if (!songName || !currentSong) {
             return message.reply('No song is currently playing to name.');
@@ -136,7 +136,7 @@ client.on('messageCreate', async (message) => {
     // Handle the !play command to play the uploaded song by file name or song name
     if (message.content.startsWith('!play') && !message.author.bot) {
         const args = message.content.split('!play');
-        let fileName = args[1];
+        let fileName = args[1].trim();
 
         if (!fileName) {
             return message.reply('Please provide a valid file name or song name.');
